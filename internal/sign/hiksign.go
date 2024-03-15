@@ -94,7 +94,7 @@ func ObtainSign(method string, remoteUrl string, appSecret string, headers map[s
 	//         如果某个参数的 Value 为空只保留 Key 参与签名。
 	u, err := url.Parse(remoteUrl)
 	if err != nil {
-		return signMap, fmt.Errorf("Parse remoteUrl:%s failed,\n %w", remoteUrl, err)
+		return signMap, fmt.Errorf("parse remoteUrl:%s failed,\n %w", remoteUrl, err)
 	}
 	var uPath string
 	if u.RawQuery != "" {
@@ -110,8 +110,8 @@ func ObtainSign(method string, remoteUrl string, appSecret string, headers map[s
 	mac := hmac.New(sha256.New, []byte(appSecret))
 	mac.Write([]byte(message))
 	result := base64.StdEncoding.EncodeToString(mac.Sum(nil))
-	trimMsg := strings.ReplaceAll(message, "\n", "\\n")
-	fmt.Println(trimMsg, " --> ", result)
+	// trimMsg := strings.ReplaceAll(message, "\n", "\\n")
+	// fmt.Println(trimMsg, " --> ", result)
 	signMap[HEADER_X_CA_SIGN] = result
 	signMap[HEADER_X_CA_SIGN_HEADERS] = HEADER_X_CA_KEY
 

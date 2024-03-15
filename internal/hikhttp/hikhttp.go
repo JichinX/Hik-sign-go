@@ -1,7 +1,6 @@
 package hikhttp
 
 import (
-	"fmt"
 	"io"
 	"jichinx/hik-sign/internal/consts"
 	"jichinx/hik-sign/internal/sign"
@@ -9,26 +8,25 @@ import (
 	"strings"
 )
 
-func Request(url string, body string) (string, error) {
+func Request(url string, body string) ([]byte, error) {
+
+	var respBytes []byte
 	req, err := http.NewRequest("POST", url, strings.NewReader(body))
 	if err != nil {
-		return "", err
+		return respBytes, err
 	}
 	err = patchHeaders(req)
 	if err != nil {
-		return "", err
+		return respBytes, err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", err
+		return respBytes, err
 	}
 	defer resp.Body.Close()
 
-	respBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(respBytes), nil
+	return io.ReadAll(resp.Body)
+
 }
 func patchHeaders(req *http.Request) (err error) {
 	signHeaders, err := sign.ObtainSign("POST", req.URL.String(), consts.APP_SECRET, consts.CommHeaders)
@@ -36,11 +34,11 @@ func patchHeaders(req *http.Request) (err error) {
 		return
 	}
 	for k, v := range consts.CommHeaders {
-		fmt.Println("add header", k, v)
+		// fmt.Println("add header", k, v)
 		req.Header.Add(k, v)
 	}
 	for k, v := range signHeaders {
-		fmt.Println("add header", k, v)
+		// fmt.Println("add header", k, v)
 		req.Header.Add(k, v)
 	}
 	return

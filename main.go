@@ -2,24 +2,26 @@ package main
 
 import (
 	"fmt"
-	"jichinx/hik-sign/internal/sign"
-)
-
-const APP_SECRET = "DJMVuJhQjx1BABPyEmPa"
-const (
-	URL_CAMERA_SEARCH = "http://127.0.0.1/artemis/api/resource/v2/camera/search"
+	"jichinx/hik-sign/internal/consts"
+	"jichinx/hik-sign/internal/entity/body"
+	"jichinx/hik-sign/internal/hikhttp"
 )
 
 func main() {
+	//先查询根目录
+	body := body.Values{}
+	body.Add("pageNo", 1)
+	body.Add("pageSize", 10)
+	regionRoot, err := hikhttp.Request(createUrl(consts.SERVER_HOST, consts.URL_REGION_ROOT), body.String())
+	Must(err)
+	fmt.Println(regionRoot)
 
-	headers := map[string]string{
-		sign.HEADER_X_CA_KEY:     "23752999",
-		sign.HEADER_ACCEPT:       "*/*",
-		sign.HEADER_CONTENT_TYPE: "application/json",
-	}
-	m, err := sign.ObtainSign("post", URL_CAMERA_SEARCH, APP_SECRET, headers)
+}
+func Must(err error) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(m)
+}
+func createUrl(host string, path string) string {
+	return fmt.Sprintf("%s/artemis/%s", host, path)
 }

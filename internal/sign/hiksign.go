@@ -58,6 +58,7 @@ var noNeededHeaders = [13]string{
 func ObtainSign(method string, remoteUrl string, appSecret string, headers map[string]string) (map[string]string, error) {
 	signMap := make(map[string]string, 1)
 	elememts := make([]string, 0)
+
 	//从请求头获取 appkey
 	appKey := headers[HEADER_X_CA_KEY]
 	if appKey == "" {
@@ -67,10 +68,8 @@ func ObtainSign(method string, remoteUrl string, appSecret string, headers map[s
 	elememts = append(elememts, strings.TrimSpace(strings.ToUpper(method)))
 	// 定义一个函数，概括重复逻辑
 	tryHeader := func(key string) {
-		accept, ok := headers[key]
-		if ok {
+		if accept, ok := headers[key]; ok {
 			elememts = append(elememts, accept)
-			delete(headers, key)
 		}
 	}
 	// Accept、Content-MD5、Content-Type、Date
@@ -97,8 +96,6 @@ func ObtainSign(method string, remoteUrl string, appSecret string, headers map[s
 	if err != nil {
 		return signMap, fmt.Errorf("Parse remoteUrl:%s failed,\n %w", remoteUrl, err)
 	}
-	fmt.Println("u.Path", u.Path)
-	fmt.Println("u.RawQuery", u.RawQuery)
 	var uPath string
 	if u.RawQuery != "" {
 		uPath = fmt.Sprintf("%s?%s", u.Path, u.RawQuery)
@@ -109,15 +106,14 @@ func ObtainSign(method string, remoteUrl string, appSecret string, headers map[s
 	// 计算签名
 	// //拼接字符串
 	message := strings.Join(elememts, "\n")
-
-	fmt.Println("Message:================start")
-	fmt.Println(message)
-	fmt.Println("Message:================end")
 	// //生成
 	mac := hmac.New(sha256.New, []byte(appSecret))
 	mac.Write([]byte(message))
 	result := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+	trimMsg := strings.ReplaceAll(message, "\n", "\\n")
+	fmt.Println(trimMsg, " --> ", result)
 	signMap[HEADER_X_CA_SIGN] = result
+	signMap[HEADER_X_CA_SIGN_HEADERS] = HEADER_X_CA_KEY
 
 	return signMap, nil
 }
